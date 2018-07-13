@@ -1,0 +1,37 @@
+version: '2.1'
+
+volumes:
+  lantasydb:
+
+services:
+  overseer-ingest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    volumes:
+      - ./src:/opt/app
+      - ./.data/media:/opt/media
+    ports:
+      - 8000:8000
+    command: uwsgi-dev
+
+  postgres:
+    image: postgres:9.4-alpine
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: test
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      PGDATA: /pgdata
+    volumes:
+      - ./.data/pgsql:/pgdata
+    healthcheck:
+      test: ["CMD-SHELL", "psql -h 'localhost' -U 'postgres' -c '\\l'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
